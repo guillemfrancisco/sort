@@ -97,7 +97,8 @@ class KalmanBoxTracker(object):
     self.id = KalmanBoxTracker.count
     KalmanBoxTracker.count += 1
     self.type = bbox[5]
-    self.history = []
+    self.historyBbox = []
+    self.historyCnt = []
     self.hits = 0
     self.hit_streak = 0
     self.age = 0
@@ -107,7 +108,8 @@ class KalmanBoxTracker(object):
     Updates the state vector with observed bbox.
     """
     self.time_since_update = 0
-    self.history = []
+    self.historyBbox = []
+    self.historyCnt = []
     self.hits += 1
     self.hit_streak += 1
     self.kf.update(convert_bbox_to_z(bbox))
@@ -124,8 +126,9 @@ class KalmanBoxTracker(object):
     if(self.time_since_update>0):
       self.hit_streak = 0
     self.time_since_update += 1
-    self.history.append(convert_x_to_bbox(self.kf.x))
-    return self.history[-1]
+    self.historyBbox.append(convert_x_to_bbox(self.kf.x))
+    self.historyCnt.append([self.kf.x[0], self.kf.x[1]])
+    return self.historyBbox[-1]
 
   def get_state(self):
     """
@@ -183,6 +186,7 @@ class Sort(object):
     self.min_hits = min_hits
     self.trackers = []
     self.frame_count = 0
+    self.centers = []
 
   def update(self,dets):
     """
@@ -213,6 +217,7 @@ class Sort(object):
       if(t not in unmatched_trks):
         d = matched[np.where(matched[:,1]==t)[0],0]
         trk.update(dets[d,:][0])
+        centers.append([trk.id, trk.historyCnt[-1], trk.historyCnt[-2]])
 
     #create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
@@ -230,6 +235,9 @@ class Sort(object):
     if(len(ret)>0):
       return np.concatenate(ret)
     return np.empty((0,6))
+
+  def get_centers(self):
+    return self.centers
 
 def parse_args():
     """Parse input arguments."""
