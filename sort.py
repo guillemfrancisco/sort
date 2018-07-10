@@ -103,6 +103,8 @@ class KalmanBoxTracker(object):
     self.hit_streak = 0
     self.age = 0
 
+    self.historyCnt.append([self.kf.x[0], self.kf.x[1]])
+
   def update(self,bbox):
     """
     Updates the state vector with observed bbox.
