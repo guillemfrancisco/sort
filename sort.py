@@ -204,6 +204,8 @@ class Sort(object):
     trks = np.zeros((len(self.trackers),6))
     to_del = []
     ret = []
+    self.centers= []
+    
     for t,trk in enumerate(trks):
       pos = self.trackers[t].predict()[0]
       trk[:] = [pos[0], pos[1], pos[2], pos[3], 0, 0]
