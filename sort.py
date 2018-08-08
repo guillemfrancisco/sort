@@ -103,7 +103,7 @@ class KalmanBoxTracker(object):
     self.hit_streak = 0
     self.age = 0
 
-    self.historyCnt.append([self.kf.x[0], self.kf.x[1]])
+    self.historyCnt.append([int(self.kf.x[0]), int(self.kf.x[1])])
 
   def update(self,bbox):
     """
@@ -129,7 +129,7 @@ class KalmanBoxTracker(object):
       self.hit_streak = 0
     self.time_since_update += 1
     self.historyBbox.append(convert_x_to_bbox(self.kf.x))
-    self.historyCnt.append([self.kf.x[0], self.kf.x[1]])
+    self.historyCnt.append([int(self.kf.x[0]), int(self.kf.x[1])])
     return self.historyBbox[-1]
 
   def get_state(self):
@@ -205,7 +205,7 @@ class Sort(object):
     to_del = []
     ret = []
     self.centers= []
-    
+
     for t,trk in enumerate(trks):
       pos = self.trackers[t].predict()[0]
       trk[:] = [pos[0], pos[1], pos[2], pos[3], 0, 0]
@@ -221,7 +221,7 @@ class Sort(object):
       if(t not in unmatched_trks):
         d = matched[np.where(matched[:,1]==t)[0],0]
         trk.update(dets[d,:][0])
-        centers.append([trk.id, trk.historyCnt[-1], trk.historyCnt[-2]])
+        self.centers.append([trk.id, trk.type, trk.historyCnt[-1], trk.historyCnt[-2]])
 
     #create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
@@ -231,7 +231,7 @@ class Sort(object):
     for trk in reversed(self.trackers):
         d = trk.get_state()[0]
         if((trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits)):
-          ret.append(np.concatenate((d,[trk.id+1],[trk.type])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+          ret.append(np.concatenate((d,[trk.id],[trk.type])).reshape(1,-1))
         i -= 1
         #remove dead tracklet
         if(trk.time_since_update > self.max_age):
